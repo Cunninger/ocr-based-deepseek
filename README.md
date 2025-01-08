@@ -1,6 +1,5 @@
-当然可以！以下是添加了一些美观表情的更新版 README 文件：
 
-# 🌟 DeepSeek OCR 项目 README
+# 🌟 DeepSeek OCR
 
 ## 📖 项目简介
 
