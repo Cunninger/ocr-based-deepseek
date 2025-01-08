@@ -116,15 +116,15 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 <picture>
   <source
     media="(prefers-color-scheme: dark)"
-    srcset="https://api.star-history.com/svg?repos=cunninger/jarvis2api&type=Date&theme=dark"
+    srcset="https://api.star-history.com/svg?repos=cunninger/ocr-based-deepseek&type=Date&theme=dark"
   />
   <source
     media="(prefers-color-scheme: light)"
-    srcset="https://api.star-history.com/svg?repos=cunninger/jarvis2api&type=Date"
+    srcset="https://api.star-history.com/svg?repos=cunninger/ocr-based-deepseek&type=Date"
   />
   <img
     alt="Star History Chart"
-    src="https://api.star-history.com/svg?repos=cunninger/jarvis2api&type=Date"
+    src="https://api.star-history.com/svg?repos=cunninger/ocr-based-deepseek&type=Date"
   />
 </picture>
 
