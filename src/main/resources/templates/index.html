@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DeepSeek OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <style>
+        .drop-zone {
+            border: 2px dashed #4F46E5;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.dragover {
+            background: rgba(79, 70, 229, 0.1);
+            transform: scale(1.02);
+        }
+        .drop-zone.disabled {
+            border-color: #9CA3AF;
+            background: #F3F4F6;
+            cursor: not-allowed;
+        }
+        .loading {
+            position: relative;
+            background: linear-gradient(45deg, #4F46E5, #818CF8);
+            background-size: 200% 200%;
+            animation: gradient 2s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .result-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .preview-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .preview-container:hover .preview-overlay {
+            opacity: 1;
+        }
+
+        .fade-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .fade-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease-out;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .result-header {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-content {
+            padding: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+
+        .copy-button {
+            padding: 0.5rem 1rem;
+            background-color: #4F46E5;
+            color: white;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .copy-button:hover {
+            background-color: #4338CA;
+        }
+
+        .copy-button.copied {
+            background-color: #059669;
+        }
+
+        .result-enter {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .result-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.5s ease-out;
+        }
+
+        .settings-button {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4F46E5;
+            color: white;
+            padding: 1rem 0.5rem;
+            border-radius: 0.5rem 0 0 0.5rem;
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+
+        .settings-button:hover {
+            background: #4338CA;
+        }
+
+        .settings-sidebar {
+            position: fixed;
+            right: -100%;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 40;
+            padding: 2rem;
+        }
+
+        .settings-sidebar.open {
+            right: 0;
+        }
+
+        .settings-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-option-btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 0.75rem 1rem;
+            background-color: white;
+            border: 2px solid #4F46E5;
+            color: #4F46E5;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .upload-option-btn:hover {
+            background-color: #4F46E5;
+            color: white;
+        }
+
+        .upload-option-btn.active {
+            background-color: #4F46E5;
+            color: white;
+        }
+
+        .url-input-container {
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .help-icon {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: color 0.2s;
+        }
+
+        .help-icon:hover {
+            color: #4F46E5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-width: 90%;
+            max-height: 90vh;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .guide-image {
+            max-width: 100%;
+            max-height: calc(90vh - 4rem);
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-600 floating">DeepSeek OCR</h1>
+            <p class="mt-2 text-gray-600">智能文字识别系统</p>
+        </div>
+
+        <!-- Upload Zone (Initially Disabled) -->
+        <div id="drop-zone" class="drop-zone disabled bg-white rounded-lg shadow-lg p-12 text-center">
+            <div id="upload-placeholder" class="space-y-4">
+                <div class="upload-options">
+                    <button id="uploadImageBtn" class="upload-option-btn active">
+                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        上传图片
+                    </button>
+                    <button id="urlImageBtn" class="upload-option-btn">
+                        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                        </svg>
+                        使用链接
+                    </button>
+                </div>
+
+                <div id="uploadArea" class="space-y-4">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <div class="text-lg text-gray-500" id="upload-text">
+                        请先设置认证信息
+                    </div>
+                    <p class="text-sm text-gray-400" id="upload-hint">
+                        支持拖拽上传、Ctrl+V粘贴、点击上传
+                    </p>
+                </div>
+
+                <div id="urlArea" class="hidden">
+                    <div class="url-input-container">
+                        <input type="text" id="imageUrl" class="url-input" placeholder="请输入图片URL">
+                        <button id="fetchUrlBtn" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+                            获取图片
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修改预览区域，添加操作按钮 -->
+            <div id="preview-area" class="hidden">
+                <div class="preview-container">
+                    <img id="preview-image" class="preview-image" src="" alt="预览图">
+                    <div class="preview-overlay">
+                        <div class="space-x-4">
+                            <button class="text-white bg-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors" id="reuploadBtn">
+                                重新上传
+                            </button>
+                            <button class="text-white bg-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors" id="useUrlBtn">
+                                使用链接
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="fileInput" class="hidden" accept="image/*" disabled>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" class="hidden mt-6">
+            <div class="bg-gray-200 rounded-full h-2">
+                <div id="progress-bar" class="loading h-2 rounded-full w-0 transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div id="result-container" class="hidden mt-6">
+            <div class="result-card result-enter">
+                <div class="result-header">
+                    <h2 class="text-xl font-semibold text-gray-800">识别结果</h2>
+                    <button id="copyButton" class="copy-button">
+                        复制内容
+                    </button>
+                </div>
+                <div id="result-content" class="result-content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="settings-button" id="settingsButton">
+    认证设置
+</div>
+
+<div class="settings-sidebar" id="settingsSidebar">
+    <div class="settings-close" id="settingsClose">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </div>
+    
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">认证设置</h2>
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Auth Token</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="text-gray-500 sm:text-sm">Bearer </span>
+            </div>
+            <input type="text" id="authToken"
+                   class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-16 pr-12 sm:text-sm border-gray-300 rounded-md"
+                   placeholder="输入token">
+            <div class="help-icon" id="authTokenHelp">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Chat Session ID</label>
+        <div class="mt-1 relative rounded-md shadow-sm">
+            <input type="text" id="chatSessionId"
+                   class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-4 pr-12 sm:text-sm border-gray-300 rounded-md"
+                   placeholder="xxx">
+            <div class="help-icon" id="sessionIdHelp">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    <button id="saveCredentials"
+            class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+        保存认证信息
+    </button>
+</div>
+
+<div class="modal" id="helpModal">
+    <div class="modal-content">
+        <div class="modal-close" id="modalClose">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </div>
+        <img src="/images/auth-token-guide.png" alt="获取指南" class="guide-image" id="guideImage">
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const resultContainer = document.getElementById('result-container');
+    const resultContent = document.getElementById('result-content');
+    const saveCredentialsBtn = document.getElementById('saveCredentials');
+    const uploadText = document.getElementById('upload-text');
+    const uploadHint = document.getElementById('upload-hint');
+
+    let isAuthenticated = false;
+
+    // 保存认证信息
+    saveCredentialsBtn.addEventListener('click', () => {
+        const authTokenInput = document.getElementById('authToken').value;
+        const chatSessionId = document.getElementById('chatSessionId').value;
+
+        if (!authTokenInput || !chatSessionId) {
+            alert('请填写完整的认证信息');
+            return;
+        }
+
+        // Add Bearer prefix when sending the request
+        const authToken = `Bearer ${authTokenInput}`;
+
+        // 启用上传功能
+        isAuthenticated = true;
+        dropZone.classList.remove('disabled');
+        fileInput.disabled = false;
+        uploadText.textContent = '拖拽文件到这里 或 点击上传';
+        uploadText.classList.remove('text-gray-500');
+        uploadText.classList.add('text-gray-700');
+        uploadHint.classList.remove('text-gray-400');
+        uploadHint.classList.add('text-gray-500');
+
+        // 显示成功提示
+        const originalText = saveCredentialsBtn.textContent;
+        saveCredentialsBtn.textContent = '保存成功!';
+        saveCredentialsBtn.classList.add('bg-green-500');
+        setTimeout(() => {
+            saveCredentialsBtn.textContent = originalText;
+            saveCredentialsBtn.classList.remove('bg-green-500');
+        }, 2000);
+    });
+
+    // 拖拽上传
+    dropZone.addEventListener('dragover', (e) => {
+        if (!isAuthenticated) return;
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        if (!isAuthenticated) return;
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        if (!isAuthenticated) return;
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    });
+
+    // 点击上传
+    dropZone.addEventListener('click', (e) => {
+        // 检查点击是否来自URL输入区域或按钮
+        if (e.target.closest('#urlArea') || e.target.closest('.upload-options')) {
+            return; // 如果是，则不触发文件选择
+        }
+
+        if (!isAuthenticated) {
+            alert('请先设置认证信息');
+            return;
+        }
+        
+        // 只有在上传图片模式下才触发文件选择
+        if (uploadImageBtn.classList.contains('active')) {
+            fileInput.click();
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (!isAuthenticated) return;
+        handleFiles(fileInput.files);
+    });
+
+    // 粘贴上传
+    document.addEventListener('paste', (e) => {
+        // 检查粘贴目标是否为输入框
+        if (e.target.tagName === 'INPUT') {
+            return; // 如果是输入框，允许正常粘贴
+        }
+
+        if (!isAuthenticated) {
+            alert('请先设置认证信息');
+            return;
+        }
+
+        const items = e.clipboardData.items;
+        for (let item of items) {
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                handleFiles([file]);
+            }
+        }
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            alert('请上传图片文件');
+            return;
+        }
+
+        // 显示图片预览
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-image').src = e.target.result;
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('preview-area').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+
+
+        const authToken = `Bearer ${document.getElementById('authToken').value}`;
+        const chatSessionId = document.getElementById('chatSessionId').value;
+
+        showProgress();
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('authToken', authToken);
+        formData.append('chatSessionId', chatSessionId);
+
+        fetch('/ocr', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    showResult(data.result);
+                } else {
+                    showResult('识别失败: ' + data.error);
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showResult('请求失败: ' + error);
+            });
+    }
+
+    function showProgress() {
+        progressContainer.classList.remove('hidden');
+        progressBar.style.width = '100%';
+    }
+
+    function hideProgress() {
+        progressContainer.classList.add('hidden');
+        progressBar.style.width = '0';
+    }
+
+    function showResult(text) {
+        resultContainer.classList.remove('hidden');
+        resultContent.textContent = text;
+
+        // 添加进入动画
+        const resultCard = document.querySelector('.result-card');
+        resultCard.classList.add('result-enter');
+
+        // 触发重排以启动动画
+        void resultCard.offsetWidth;
+
+        // 移除进入状态类以开始动画
+        resultCard.classList.remove('result-enter');
+
+        // 设置复制按钮功能
+        const copyButton = document.getElementById('copyButton');
+        copyButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(text).then(() => {
+                copyButton.textContent = '已复制!';
+                copyButton.classList.add('copied');
+
+                setTimeout(() => {
+                    copyButton.textContent = '复制内容';
+                    copyButton.classList.remove('copied');
+                }, 2000);
+            });
+        });
+    }
+
+    // 修改重新上传按钮事件，添加结果区域的隐藏
+    document.querySelector('.preview-overlay button').addEventListener('click', () => {
+        document.getElementById('upload-placeholder').classList.remove('hidden');
+        document.getElementById('preview-area').classList.add('hidden');
+        fileInput.value = '';
+        resultContainer.classList.add('hidden');
+
+        // 重置复制按钮状态
+        const copyButton = document.getElementById('copyButton');
+        if (copyButton) {
+            copyButton.textContent = '复制内容';
+            copyButton.classList.remove('copied');
+        }
+    });
+
+    // 添加侧边栏控制逻辑
+    const settingsButton = document.getElementById('settingsButton');
+    const settingsSidebar = document.getElementById('settingsSidebar');
+    const settingsClose = document.getElementById('settingsClose');
+
+    settingsButton.addEventListener('click', () => {
+        settingsSidebar.classList.add('open');
+    });
+
+    settingsClose.addEventListener('click', () => {
+        settingsSidebar.classList.remove('open');
+    });
+
+    // 点击侧边栏外部关闭侧边栏
+    document.addEventListener('click', (e) => {
+        if (!settingsSidebar.contains(e.target) && !settingsButton.contains(e.target)) {
+            settingsSidebar.classList.remove('open');
+        }
+    });
+
+    // 添加上传选项切换逻辑
+    const uploadImageBtn = document.getElementById('uploadImageBtn');
+    const urlImageBtn = document.getElementById('urlImageBtn');
+    const uploadArea = document.getElementById('uploadArea');
+    const urlArea = document.getElementById('urlArea');
+    const fetchUrlBtn = document.getElementById('fetchUrlBtn');
+    const imageUrl = document.getElementById('imageUrl');
+    const reuploadBtn = document.getElementById('reuploadBtn');
+    const useUrlBtn = document.getElementById('useUrlBtn');
+
+    uploadImageBtn.addEventListener('click', () => {
+        uploadImageBtn.classList.add('active');
+        urlImageBtn.classList.remove('active');
+        uploadArea.classList.remove('hidden');
+        urlArea.classList.add('hidden');
+    });
+
+    urlImageBtn.addEventListener('click', () => {
+        urlImageBtn.classList.add('active');
+        uploadImageBtn.classList.remove('active');
+        urlArea.classList.remove('hidden');
+        uploadArea.classList.add('hidden');
+    });
+
+    // 处理URL图片获取
+    fetchUrlBtn.addEventListener('click', () => {
+        const url = imageUrl.value.trim();
+        if (!url) {
+            alert('请输入图片URL');
+            return;
+        }
+
+        // 创建一个临时的Image对象来加载URL
+        const tempImage = new Image();
+        tempImage.crossOrigin = "anonymous";  // 处理跨域问题
+        tempImage.onload = function() {
+            // 将图片转换为Blob
+            const canvas = document.createElement('canvas');
+            canvas.width = tempImage.width;
+            canvas.height = tempImage.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(tempImage, 0, 0);
+            canvas.toBlob((blob) => {
+                // 创建File对象
+                const file = new File([blob], "image.png", { type: "image/png" });
+                handleFiles([file]);
+            }, 'image/png');
+        };
+        tempImage.onerror = function() {
+            alert('图片加载失败，请检查URL是否正确');
+        };
+        tempImage.src = url;
+    });
+
+    // 修改重新上传按钮事件
+    reuploadBtn.addEventListener('click', () => {
+        document.getElementById('upload-placeholder').classList.remove('hidden');
+        document.getElementById('preview-area').classList.add('hidden');
+        fileInput.value = '';
+        resultContainer.classList.add('hidden');
+        uploadImageBtn.click(); // 切换到上传图片模式
+    });
+
+    // 使用链接按钮事件
+    useUrlBtn.addEventListener('click', () => {
+        document.getElementById('upload-placeholder').classList.remove('hidden');
+        document.getElementById('preview-area').classList.add('hidden');
+        fileInput.value = '';
+        resultContainer.classList.add('hidden');
+        urlImageBtn.click(); // 切换到使用链接模式
+    });
+
+    // 添加帮助图标点击事件
+    const helpModal = document.getElementById('helpModal');
+    const modalClose = document.getElementById('modalClose');
+    const guideImage = document.getElementById('guideImage');
+    const authTokenHelp = document.getElementById('authTokenHelp');
+    const sessionIdHelp = document.getElementById('sessionIdHelp');
+
+    function showModal(imageUrl) {
+        guideImage.src = imageUrl;
+        helpModal.classList.add('show');
+    }
+
+    authTokenHelp.addEventListener('click', () => {
+        showModal('/images/auth-token-guide.png');
+    });
+
+    sessionIdHelp.addEventListener('click', () => {
+        showModal('/images/session-id-guide.png');
+    });
+
+    modalClose.addEventListener('click', () => {
+        helpModal.classList.remove('show');
+    });
+
+    // 点击模态框外部关闭
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) {
+            helpModal.classList.remove('show');
+        }
+    });
+
+    // ESC 键关闭模态框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('show')) {
+            helpModal.classList.remove('show');
+        }
+    });
+</script>
+</body>
+</html>

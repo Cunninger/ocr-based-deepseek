@@ -1,0 +1,22 @@
+server:
+  port: 8088
+spring:
+  application:
+    name: ocr-based-deepseek
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  thymeleaf:
+    # 模板路径前缀
+    prefix: classpath:/templates/
+    # 模板路径后缀
+    suffix: .html
+    # 模板模式
+    mode: HTML
+    # 模板编码
+    encoding: UTF-8
+    # 是否开启缓存
+    cache: false
+    servlet:
+      content-type: text/html
