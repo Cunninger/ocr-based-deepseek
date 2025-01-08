@@ -69,11 +69,11 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 
 在使用 OCR 功能之前，用户需要设置以下认证参数：
 
-1. **Auth Token**: 这是与 DeepSeek API 交互所需的认证令牌。可以在 DeepSeek 的开发者平台获取。
+1. **Auth Token**: 这是与 DeepSeek API 交互所需的认证令牌。如下图获取：
 <img width="1074" alt="auth-token-guide" src="https://github.com/user-attachments/assets/5ccb81ad-4274-4af9-b779-ba50a51b4411" />
 
 
-3. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。可以在 DeepSeek 的 API 文档中找到相关信息。
+3. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。如下图获取：
 <img width="1067" alt="session-id-guide" src="https://github.com/user-attachments/assets/d2900559-eb7e-418b-a1c9-55c87eeb0f41" />
 
 ### ⚙️ 设置认证信息
