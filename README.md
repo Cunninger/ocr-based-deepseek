@@ -1,4 +1,4 @@
-
+- 讨论群：https://t.me/ocr_based_dp
 # 🌟 DeepSeek OCR
 
 ## 📖 项目简介
