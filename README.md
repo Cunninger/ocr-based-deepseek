@@ -77,7 +77,7 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 <img width="1074" alt="auth-token-guide" src="https://github.com/user-attachments/assets/5ccb81ad-4274-4af9-b779-ba50a51b4411" />
 
 
-3. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。如下图获取：
+2. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。如下图获取：
 <img width="1067" alt="session-id-guide" src="https://github.com/user-attachments/assets/d2900559-eb7e-418b-a1c9-55c87eeb0f41" />
 
 ### ⚙️ 设置认证信息
