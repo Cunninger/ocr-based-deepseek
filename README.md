@@ -19,8 +19,20 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 
 - JDK 8 或更高版本
 - Maven 3.6 或更高版本
-- Docker（可选）
+- Docker
 
+### 🐳 Docker 部署（推荐）
+
+1. **推送到 Docker 仓库**
+
+   如果您已经将镜像推送到 Docker 仓库，可以直接使用以下命令进行一键部署：
+
+   ```bash
+   docker run -p 8088:8088 sexgirls/ocr-based-deepseek:latest
+   ```
+
+   访问 `http://localhost:8088` 来使用应用。
+   
 ### 🖥️ 本地部署
 
 1. **克隆项目**
@@ -48,17 +60,6 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 
    默认情况下，应用将在 `http://localhost:8088` 上运行。
 
-### 🐳 Docker 部署
-
-1. **推送到 Docker 仓库**
-
-   如果您已经将镜像推送到 Docker 仓库，可以直接使用以下命令进行一键部署：
-
-   ```bash
-   docker run -p 8088:8088 sexgirls/ocr-based-deepseek:latest
-   ```
-
-   访问 `http://localhost:8088` 来使用应用。
 
 ## 🔑 参数获取说明
 
