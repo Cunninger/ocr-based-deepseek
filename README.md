@@ -4,7 +4,7 @@
 
 ## 📖 项目简介
 
-DeepSeek OCR 是一个基于深度学习的智能文字识别系统，旨在通过图像识别技术提取图像中的文本信息。该项目使用了 DeepSeek API 进行 OCR 处理，支持多种上传方式，包括文件上传和 URL 上传。
+DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨在通过图像识别技术提取图像中的文本信息。该项目使用了 DeepSeek API 进行 OCR 处理，支持多种上传方式，包括文件上传和 URL 上传。
 
 ## 🛠️ 功能介绍
 
@@ -66,8 +66,11 @@ DeepSeek OCR 是一个基于深度学习的智能文字识别系统，旨在通�
 在使用 OCR 功能之前，用户需要设置以下认证参数：
 
 1. **Auth Token**: 这是与 DeepSeek API 交互所需的认证令牌。可以在 DeepSeek 的开发者平台获取。
+<img width="1074" alt="auth-token-guide" src="https://github.com/user-attachments/assets/5ccb81ad-4274-4af9-b779-ba50a51b4411" />
 
-2. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。可以在 DeepSeek 的 API 文档中找到相关信息。
+
+3. **Chat Session ID**: 这是用于标识会话的 ID，通常在进行多次请求时需要保持一致。可以在 DeepSeek 的 API 文档中找到相关信息。
+<img width="1067" alt="session-id-guide" src="https://github.com/user-attachments/assets/d2900559-eb7e-418b-a1c9-55c87eeb0f41" />
 
 ### ⚙️ 设置认证信息
 
