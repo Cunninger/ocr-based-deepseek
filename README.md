@@ -12,6 +12,10 @@ DeepSeek OCR 是一个基于Deepseek AI模型的智能文字识别系统，旨�
 - **📄 结果展示**: 显示识别结果，并提供复制功能。
 - **🔑 认证设置**: 用户可以设置认证信息（Auth Token 和 Chat Session ID）以启用 OCR 功能。
 - **📚 帮助文档**: 提供对认证参数的获取说明，帮助用户更好地使用该系统。
+## 🖼️ 图片展示项目界面
+以下是项目的界面展示，帮助您更好地了解项目的功能和运行效果。
+![image](https://github.com/user-attachments/assets/fdd6ca38-fbc5-4e69-8f5e-972033551997)
+
 
 ## 🚀 部署指南
 
