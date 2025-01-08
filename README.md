@@ -1,5 +1,9 @@
-- 讨论群：https://t.me/ocr_based_dp
+
+
 # 🌟 DeepSeek OCR
+
+
+[Telegram Chinese](https://t.me/ocr_based_dp) •
 
 ## 📖 项目简介
 
